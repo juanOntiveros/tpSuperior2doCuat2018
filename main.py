@@ -207,7 +207,6 @@ def ejecutarMenuPrincipal(matrizCoeficientes, matrizIndependientes):
 def main():
 	"""Funcion principal del programa."""
 	imprimirBienvenida()
-	print numpy.__path__
 	matrizCoeficientes, matrizIndependientes = ingresoDeDatos()
 	imprimirSistemaCargado()
 	ejecutarMenuPrincipal(matrizCoeficientes, matrizIndependientes)
