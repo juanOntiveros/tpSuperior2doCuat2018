@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy
 import math
 
 #Constantes
@@ -36,7 +35,7 @@ def ingresoDeDatosDeLaMatriz(matriz, filas, columnas, nombre):
 	print
 	for i in range(filas):
 		for j in range(columnas):
-			matriz[i,j] = input("Ingrese el dato de la fila {} y la columna {}: ".format(i+UNO,j+UNO))
+			matriz[i][j] = input("Ingrese el dato de la fila {} y la columna {}: ".format(i+UNO,j+UNO))
 
 def conseguirListasConValoresAbsolutosDeLaMatriz(matrizCoeficientes, filas, columnas):
 	"""Funcion que recorre una matriz cuadrada e inversible y crea dos 
@@ -50,9 +49,9 @@ def conseguirListasConValoresAbsolutosDeLaMatriz(matrizCoeficientes, filas, colu
 		listaSuma.append(CERO)
 		for j in range(columnas):
 			if i == j:
-				listaDiagonal.append(abs(matrizCoeficientes[i,j]))
+				listaDiagonal.append(abs(matrizCoeficientes[i][j]))
 			else:
-				listaSuma[i]+= abs(matrizCoeficientes[i,j])
+				listaSuma[i]+= abs(matrizCoeficientes[i][j])
 	return listaDiagonal, listaSuma
 	
 def verificarValoresAbsolutosDeLaMatriz(verificado, listaDiagonal, listaSuma):
@@ -83,11 +82,65 @@ def verificacionMatrizInversible(matrizCoeficientes, verificado):
 	"""Funciona que dada una matriz verifica si es inversible."""
 	if not verificado: 
 		return verificado
-	determinante = numpy.linalg.det(matrizCoeficientes)
+	determinante = calcularDeterminante(copiarMatriz(matrizCoeficientes))
 	if (determinante == CERO):
 		print
 		print "La matriz ingresada no es inversible."
 	return (determinante != CERO)
+
+# Funciones sacadas de internet (sujetas a revision)	
+	
+def multiplicaFila(m,f,e):
+	'''
+	Multiplica la fila f por el valor e
+	'''
+	n=len(m)
+	for c in range(n):
+		m[f][c]=m[f][c]*e
+		
+def combinacion(m,i,j,e):
+	'''
+	Combina las filas i y j, añadiendo a la fila j el producto de la
+	fila i por un factor e
+	'''
+	n=len(m)
+	for c in range(n):
+		m[j][c]=m[j][c]+e*m[i][c]
+		
+def intercambiaFilas(m,i,j):
+	m[i],m[j] = m[j],m[i] 
+	
+def calcularDeterminante(m):
+	'''
+	Calcula el determinante poniendo ceros debajo
+	de la diagonal principal
+	'''
+	n=len(m)
+	det=1
+	for i in range(n):
+		j=primeroNoNulo(m,i)
+		if j == n:
+			return 0
+		if i!=j:
+			det=-1*det
+			intercambiaFilas(m,i,j)
+		det=det*m[i][i]
+		multiplicaFila(m,i,1./m[i][i])
+		for k in range(i+1,n):
+			combinacion(m,i,k,-m[k][i])
+	return det
+	
+def primeroNoNulo(m,i):
+	'''
+	A partir de la fila i, busca la primera fila j cuya entrada
+	(i,j) es nula
+	'''
+	result=i
+	while result<len(m) and m[result][i]==0:
+		result=result+1
+	return result
+
+# Fin Funciones sacadas de internet (sujetas a revision)
 
 def analisisDeMatriz(matrizCoeficientes, filas, columnas):
 	"""Dada una matriz de coeficientes analiza si el sistema de ecuaciones
@@ -117,14 +170,30 @@ def ingresoDeNumeroDeFilasyColumnas(filas, columnas):
 	filas = int(input("Ingrese el numero de filas: "))
 	columnas = int(input("Ingrese el numero de columnas: "))
 	return verificacionFilasyColumnas(filas,columnas)
+
+def crearMatrizDeCeros(filas, columnas):
+	matriz = []
+	for i in range(filas):
+		matriz.append([])
+		for j in range(columnas):
+			matriz[i].append(0)
+	return matriz
 	
+def copiarMatriz(matriz):
+	matrizNueva = []
+	for i in range(len(matriz)):
+		matrizNueva.append([])
+		for j in range(len(matriz[CERO])):
+			matrizNueva[i].append(matriz[i][j])
+	return matrizNueva
+
 def ingresoDeDatos():
 	"""Funcion que pide el ingreso de todos los datos y los verifica."""
 	verificado = NO_VERIFICADO
 	while (not verificado):
 		filas, columnas = ingresoDeNumeroDeFilasyColumnas(CERO, CERO)
-		matrizCoeficientes = numpy.zeros((filas,columnas))
-		matrizIndependientes = numpy.zeros((filas, UNO))
+		matrizCoeficientes = crearMatrizDeCeros(filas, columnas)
+		matrizIndependientes = crearMatrizDeCeros(filas, UNO)
 		ingresoDeDatosDeLaMatriz(matrizCoeficientes, filas, columnas, COEFICIENTES)
 		verificado = analisisDeMatriz(matrizCoeficientes, filas, columnas)
 	ingresoDeDatosDeLaMatriz(matrizIndependientes, filas, UNO, INDEPENDIENTES)
@@ -159,22 +228,24 @@ def seleccionarOpcion(minimo, maximo):
 	return opcion
 	
 def calcularNormaUno(matrizCoeficientes):
-	"""Dada una matriz calcula la norma 1 de la misma."""
+	"""Dada una matriz cuadrada calcula la norma 1 de la misma."""
 	listaDeMaximos = []
-	for j in range(matrizCoeficientes.shape[COLUMNAS]):
+	n = len(matrizCoeficientes)
+	for j in range(n):
 		listaDeMaximos.append(CERO)
-		for i in range(matrizCoeficientes.shape[FILAS]):
-			listaDeMaximos[j] += int(abs(matrizCoeficientes[i,j]))
+		for i in range(n):
+			listaDeMaximos[j] += int(abs(matrizCoeficientes[i][j]))
 	print "----"
 	print "La norma 1 de la matriz A es {}".format(max(listaDeMaximos))
 	
 def calcularNormaInfinito(matrizCoeficientes):
 	"""Dada una matriz calcula la norma infinito de la misma."""
 	listaDeMaximos = []
-	for i in range(matrizCoeficientes.shape[FILAS]):
+	n = len(matrizCoeficientes)
+	for i in range(n):
 		listaDeMaximos.append(CERO)
-		for j in range(matrizCoeficientes.shape[COLUMNAS]):
-			listaDeMaximos[i] += int(abs(matrizCoeficientes[i,j]))
+		for j in range(n):
+			listaDeMaximos[i] += int(abs(matrizCoeficientes[i][j]))
 	print "----"
 	print "La norma infinito de la matriz A es {}".format(max(listaDeMaximos))
 
@@ -187,9 +258,10 @@ def accionarDecisionDelMenuPrincipal(opcion, matrizCoeficientes, matrizIndependi
 	if (opcion == UNO):
 		calcularNormaUno(matrizCoeficientes)
 	if (opcion == DOS):
-		print multiplicarTranspuestaPorMatrizNormal(matrizCoeficientes)
+		#print multiplicarTranspuestaPorMatrizNormal(matrizCoeficientes)
+		return
 	if (opcion == TRES):
-		#calcularNormaInfinito(matrizCoeficientes)
+		calcularNormaInfinito(matrizCoeficientes)
 		return
 	if (opcion == CUATRO):
 		return
