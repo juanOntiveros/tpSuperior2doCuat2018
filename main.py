@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Falta hacer toda la logica de los metodos de Jacobi y de Gauss Seidel.
+
+"""
+
 import numpy
 import math
 
@@ -15,6 +20,8 @@ COLUMNAS = 1
 NO_VERIFICADO = False
 COEFICIENTES = "A de Coeficientes"
 INDEPENDIENTES = "B de Terminos independientes"
+AFIRMATIVO = "SI"
+NEGATIVO = "NO"
 
 MENU_PRINCIPAL="""Menu Principal
 ------
@@ -23,7 +30,14 @@ MENU_PRINCIPAL="""Menu Principal
 3.Norma Infinito
 4.Resolver Sistema
 
-0.SALIR """
+0.Salir """
+
+MENU_METODOS="""Menu de Metodos Disponibles
+-----
+1.Metodo de Jacobi
+2.Metodo de Gauss Seidel
+
+0.Volver al menu principal """
 
 #Funciones
 
@@ -63,6 +77,28 @@ def verificarValoresAbsolutosDeLaMatriz(verificado, listaDiagonal, listaSuma):
 		verificado = (listaDiagonal[i] > listaSuma[i])
 		i+=UNO
 	return verificado
+	
+def inicioDePrograma():
+	"""Da inicio a la ejecucion del programa."""
+	return True
+
+def terminarPrograma():
+	"""Termina la ejecucion del programa."""
+	return False
+	
+def decidirSiSeguirEjecutando():
+	"""Le permite al usuario decidir si quiere seguir ejecutando el programa
+	o salir definitivamente."""
+	print "Desea salir definitivamente o dar origen a un nuevo set de datos? (Si/No)"
+	decision = inicioDePrograma()
+	seleccion = raw_input().upper()
+	if seleccion == AFIRMATIVO:
+		return terminarPrograma()
+	if seleccion == NEGATIVO:
+		return inicioDePrograma()
+	else:
+		print "Opcion incorrecta. Por favor vuelva a intentarlo..."
+		return decidirSiSeguirEjecutando()
 		
 def verificacionMatrizEstrictamenteDominante(matrizCoeficientes, verificado, filas, columnas):
 	"""Funcion que verifica que una matriz sea Estrictamente 
@@ -134,17 +170,25 @@ def imprimirBienvenida():
 	"""Despliega la bienvenida del sistema."""
 	print "Bienvenido a SIEL"
 	
+def imprimirDespedida():
+	"""Despliega la despedida del sistema."""
+	print "-----"
+	print "Gracias por usar SIEL!"
+	
 def imprimirMenuPrincipal():
 	"""Imprime el menu principal."""
 	print 
 	print MENU_PRINCIPAL
 
 def imprimirVolviendoAlMenuPrincipal():
+	"""Imprime mensaje volviendo al menu principal."""
 	print "Volviendo al menu principal..."
 	print "-----"
 
-def imprimirSistemaCargado():
+def imprimirSistemaCargado(matrizCoeficientes, matrizIndependientes):
 	"""Imprime cuando el sistema fue cargado satisfactoriamente."""
+	imprimirMatrizDeCoeficientes(matrizCoeficientes)
+	imprimirMatrizIndependientes(matrizIndependientes)
 	print "-----"
 	print "Sistema de ecuaciones lineales cargado..."
 	print "Deplegando menu principal..."
@@ -179,22 +223,96 @@ def calcularNormaInfinito(matrizCoeficientes):
 	print "La norma infinito de la matriz A es {}".format(max(listaDeMaximos))
 
 def multiplicarTranspuestaPorMatrizNormal(matrizCoeficientes):
+	"""Hace el producto de la matriz transpuesta de coeficientes con
+	la matriz normal de coeficientes."""
 	matrizTranspuesta = matrizCoeficientes.transpose()
 	return numpy.matmul(matrizTranspuesta,matrizCoeficientes)
+	
+def calcularLosAutovaloresDeUnaMatriz(matriz):
+	"""Calcula los autovalores de una matriz dada."""
+	return numpy.linalg.eigvals(matriz)
+
+def calcularElMaximoValorModuloDeLosAutovalores(listaDeAutovalores):
+	"""Dado una lista con los autovalores de una matriz, calcula el
+	maximo valor en modulo entre ellos y lo devuelve."""
+	for autovalor in listaDeAutovalores:
+		autovalor = abs(autovalor)	
+	return max(listaDeAutovalores)
+	
+def calcularNormaDos(matrizCoeficientes):
+	"""Dada una matriz calcula la norma 2 de la misma."""
+	matrizCalculada = multiplicarTranspuestaPorMatrizNormal(matrizCoeficientes)
+	listaDeAutovalores = calcularLosAutovaloresDeUnaMatriz(matrizCalculada)
+	print "----"
+	print "La norma 2 de la matriz A es {}".format(calcularElMaximoValorModuloDeLosAutovalores(listaDeAutovalores))
+
+def imprimirMenuMetodos():
+	"""Imprime el menu con los metodos disponibles para solucionar
+	el sistema de ecuaciones lineales."""
+	print 
+	print MENU_METODOS
+
+def ingresarVectorInicial(filas):
+	"""Dado una cantidad de filas, le pide al usuario que ingrese el vector
+	inicial con el cual se resolvera el metodo seleccionado y 
+	luego lo devuelve."""
+	vectorInicial = numpy.zeros((filas,UNO))
+	print "-----"
+	for i in range(filas):
+		vectorInicial[i,CERO] = input("Ingrese la componente {} del vector inicial: ".format(i+UNO))
+	return vectorInicial
+
+def ingresarCotaDeError():
+	"""Pide el ingreso de la cota de error para su posterior uso."""
+	print "-----"
+	return input("Ingrese la cota de error: ")
+	
+def ingresarCantidadDeDecimales():
+	"""Pide el ingreso de la cantidad de decimales para su posterior uso."""
+	print "-----"
+	return input("Ingrese la cantidad de decimales: ")
+
+def accionarDecisionDelMenuMetodos(opcion, matrizCoeficientes, matrizIndependientes):
+	"""Dada una opcion seleccionada para el menu de metodos, la ejecuta."""
+	if (opcion == UNO):
+		return
+	if (opcion == DOS):
+		return
+	if (opcion == CERO):
+		imprimirVolviendoAlMenuPrincipal()
+
+def ejecutarMenuMetodos(matrizCoeficientes, matrizIndependientes):
+	"""Ejecuta el menu de metodos."""
+	opcion = UNO
+	while (opcion != CERO):
+		imprimirMenuMetodos()
+		opcion = seleccionarOpcion(CERO, DOS)
+		accionarDecisionDelMenuMetodos(opcion, matrizCoeficientes, matrizIndependientes)
 
 def accionarDecisionDelMenuPrincipal(opcion, matrizCoeficientes, matrizIndependientes):
-	"""Dada una opcion seleccionada, la ejecuta."""
+	"""Dada una opcion seleccionada para el menu principal, la ejecuta."""
 	if (opcion == UNO):
 		calcularNormaUno(matrizCoeficientes)
 	if (opcion == DOS):
-		print multiplicarTranspuestaPorMatrizNormal(matrizCoeficientes)
+		calcularNormaDos(matrizCoeficientes)
 	if (opcion == TRES):
-		#calcularNormaInfinito(matrizCoeficientes)
-		return
+		calcularNormaInfinito(matrizCoeficientes)
 	if (opcion == CUATRO):
-		return
+		ejecutarMenuMetodos(matrizCoeficientes, matrizIndependientes)
 	if (opcion != CERO):
 		imprimirVolviendoAlMenuPrincipal()
+		
+def imprimirMatrizDeCoeficientes(matrizCoeficientes):
+	"""Imprime la matriz de Coeficientes."""
+	print "-----"
+	print "La matriz de coeficientes es de la forma: "
+	print matrizCoeficientes
+	
+def imprimirMatrizIndependientes(matrizIndependientes):
+	"""Imprime la matriz de terminos independientes."""
+	print "-----"
+	print "La matriz columna de terminos independientes es de la forma: "
+	print matrizIndependientes
 	
 def ejecutarMenuPrincipal(matrizCoeficientes, matrizIndependientes):
 	"""Ejecuta el menu principal."""
@@ -202,14 +320,19 @@ def ejecutarMenuPrincipal(matrizCoeficientes, matrizIndependientes):
 	while (opcion != CERO):
 		imprimirMenuPrincipal()
 		opcion = seleccionarOpcion(CERO, CUATRO)
-		accionarDecisionDelMenuPrincipal(opcion, matrizCoeficientes, matrizIndependientes)	
+		accionarDecisionDelMenuPrincipal(opcion, matrizCoeficientes, matrizIndependientes)
+	return opcion
 	
 def main():
 	"""Funcion principal del programa."""
 	imprimirBienvenida()
-	matrizCoeficientes, matrizIndependientes = ingresoDeDatos()
-	imprimirSistemaCargado()
-	ejecutarMenuPrincipal(matrizCoeficientes, matrizIndependientes)
+	ejecutar = inicioDePrograma()
+	while (ejecutar):
+		matrizCoeficientes, matrizIndependientes = ingresoDeDatos()
+		imprimirSistemaCargado(matrizCoeficientes,matrizIndependientes)
+		ejecutarMenuPrincipal(matrizCoeficientes, matrizIndependientes)
+		ejecutar = decidirSiSeguirEjecutando()
+	imprimirDespedida()	
 	return 0
 
 main()
