@@ -15,8 +15,6 @@ UNO = 1
 DOS = 2
 TRES = 3
 CUATRO = 4
-FILAS = 0
-COLUMNAS = 1
 NO_VERIFICADO = False
 COEFICIENTES = "A de Coeficientes"
 INDEPENDIENTES = "B de Terminos independientes"
@@ -205,9 +203,9 @@ def seleccionarOpcion(minimo, maximo):
 def calcularNormaUno(matrizCoeficientes):
 	"""Dada una matriz calcula la norma 1 de la misma."""
 	listaDeMaximos = []
-	for j in range(matrizCoeficientes.shape[COLUMNAS]):
+	for j in range(len(matrizCoeficientes)):
 		listaDeMaximos.append(CERO)
-		for i in range(matrizCoeficientes.shape[FILAS]):
+		for i in range(len(matrizCoeficientes)):
 			listaDeMaximos[j] += int(abs(matrizCoeficientes[i,j]))
 	print "----"
 	print "La norma 1 de la matriz A es {}".format(max(listaDeMaximos))
@@ -215,9 +213,9 @@ def calcularNormaUno(matrizCoeficientes):
 def calcularNormaInfinito(matrizCoeficientes):
 	"""Dada una matriz calcula la norma infinito de la misma."""
 	listaDeMaximos = []
-	for i in range(matrizCoeficientes.shape[FILAS]):
+	for i in range(len(matrizCoeficientes)):
 		listaDeMaximos.append(CERO)
-		for j in range(matrizCoeficientes.shape[COLUMNAS]):
+		for j in range(len(matrizCoeficientes)):
 			listaDeMaximos[i] += int(abs(matrizCoeficientes[i,j]))
 	print "----"
 	print "La norma infinito de la matriz A es {}".format(max(listaDeMaximos))
