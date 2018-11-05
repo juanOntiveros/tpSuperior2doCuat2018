@@ -315,17 +315,26 @@ def separarMatrizDeCoeficientes(matrizCoeficientes):
 	return matrizD, matrizL, matrizU
 	
 def calcularMatrizTdeJacobi(matrizD, matrizL, matrizU):
-	"""Dada una matriz de coeficientes, calcula la matriz T de Jacobi y 
+	"""Dadas las matrices D,L y U, calcula la matriz T de Jacobi y 
 	la devuelve."""
 	matrizDInversa = calcularMatrizInversa(matrizD)
 	matrizSuma = calcularSumaDeMatrices(matrizL, matrizU)
 	return multiplicarMatrices(matrizDInversa, matrizSuma)
 	
 def calcularMatrizCdeJacobi(matrizD, matrizIndependientes):
-	"""Dada una matriz de coeficientes, calcula la matriz C de Jacobi y 
-	la devuelve."""
+	"""Dada una matriz D y la matriz de valores independientes, calcula 
+	la matriz C de Jacobi y la devuelve."""
 	matrizDInversa = calcularMatrizInversa(matrizD)
-	return multiplicarMatrices(matrizD, matrizIndependientes)
+	return multiplicarMatrices(matrizDInversa, matrizIndependientes)	
+
+def calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizAdicional):
+	"""Dada una matriz D y L, mas una matriz adicional, calcula la matriz
+	T o C de Gauss Seidel y la devuelve. Para la matriz T debe recibir
+	como matriz adicional a la matriz U y para la matriz C debe recibir
+	la matriz de valores independientes."""
+	matrizResta = calcularRestaDeMatrices(matrizD, matrizL)
+	matrizRestaInversa = calcularMatrizInversa(matrizResta)
+	return multiplicarMatrices(matrizRestaInversa, matrizAdicional)
 	
 def calcularElMaximoValorModuloDeLosAutovalores(listaDeAutovalores):
 	"""Dado una lista con los autovalores de una matriz, calcula el
@@ -335,9 +344,20 @@ def calcularElMaximoValorModuloDeLosAutovalores(listaDeAutovalores):
 	return max(listaDeAutovalores)
 
 #Hay que probar la matriz C de Jacobi
-def funcionPrueba(matrizCoeficientes):
+def funcionPrueba(matrizCoeficientes, matrizIndependientes):
 	matrizD, matrizL, matrizU = separarMatrizDeCoeficientes(matrizCoeficientes)
+	print "La matriz D: "
+	print matrizD
+	print "La matriz L: "
+	print matrizL
+	print "La matriz U: "
+	print matrizU
+	print "Los resultados son: "
 	print calcularMatrizTdeJacobi(matrizD, matrizL, matrizU)
+	print calcularMatrizCdeJacobi(matrizD, matrizIndependientes)
+	print calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizU)
+	print calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizIndependientes)
+	
 	
 def calcularNormaUno(matrizCoeficientes):
 	"""Dada una matriz calcula la norma 1 de la misma."""
@@ -380,7 +400,7 @@ def seleccionarOpcion(minimo, maximo):
 def accionarDecisionDelMenuMetodos(opcion, matrizCoeficientes, matrizIndependientes):
 	"""Dada una opcion seleccionada para el menu de metodos, la ejecuta."""
 	if (opcion == UNO):
-		#funcionPrueba(matrizCoeficientes)
+		funcionPrueba(matrizCoeficientes, matrizIndependientes)
 		return
 	if (opcion == DOS):
 		return
