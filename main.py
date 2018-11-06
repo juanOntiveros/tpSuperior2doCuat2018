@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Falta hacer toda la logica de los metodos de Jacobi y de Gauss Seidel.
-
-"""
-
 import numpy
 import math
 
@@ -116,7 +111,11 @@ def ingresarVectorInicial(filas):
 def ingresarCotaDeError():
 	"""Pide el ingreso de la cota de error para su posterior uso."""
 	print "-----"
-	return input("Ingrese la cota de error: ")
+	cotaDeError = input("Ingrese la cota de error: ")
+	if (cotaDeError < CERO):
+		print "La cota no puede ser menor a cero. "
+		cotaDeError = ingresarCotaDeError()
+	return cotaDeError
 	
 def ingresarCantidadDeDecimales():
 	"""Pide el ingreso de la cantidad de decimales para su posterior uso."""
@@ -264,6 +263,10 @@ def calcularSumaDeMatrices(primerMatriz, segundaMatriz):
 def calcularRestaDeMatrices(primerMatriz, segundaMatriz):
 	"""Calcula la resta de dos matrices dadas."""
 	return (primerMatriz - segundaMatriz)
+	
+def calcularLaNormaDeUnVector(vector):
+	"""Calcula la norma de un vector dado."""
+	return numpy.linalg.norm(vector)
 
 def multiplicarMatrices(primerMatriz, segundaMatriz):
 	"""Mutiplica una matriz por otra, si es posible."""
@@ -342,22 +345,6 @@ def calcularElMaximoValorModuloDeLosAutovalores(listaDeAutovalores):
 	for autovalor in listaDeAutovalores:
 		autovalor = abs(autovalor)	
 	return max(listaDeAutovalores)
-
-#Hay que probar la matriz C de Jacobi
-def funcionPrueba(matrizCoeficientes, matrizIndependientes):
-	matrizD, matrizL, matrizU = separarMatrizDeCoeficientes(matrizCoeficientes)
-	print "La matriz D: "
-	print matrizD
-	print "La matriz L: "
-	print matrizL
-	print "La matriz U: "
-	print matrizU
-	print "Los resultados son: "
-	print calcularMatrizTdeJacobi(matrizD, matrizL, matrizU)
-	print calcularMatrizCdeJacobi(matrizD, matrizIndependientes)
-	print calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizU)
-	print calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizIndependientes)
-	
 	
 def calcularNormaUno(matrizCoeficientes):
 	"""Dada una matriz calcula la norma 1 de la misma."""
@@ -388,6 +375,103 @@ def calcularNormaInfinito(matrizCoeficientes):
 	print "----"
 	print "La norma infinito de la matriz A es {}".format(max(listaDeMaximos))
 	
+def calcularNormaInfinitoParaVector(vector):
+	"""Calcula la norma infinito para un vector dado."""
+	listaDeMaximos = []
+	for i in range(len(vector)):
+		listaDeMaximos.append(abs(vector[i,CERO]))
+	return max(listaDeMaximos)	
+
+def calcularCondicionDeCorte(vectorK, vectorKmenosUno):
+	"""Dado un vector K y un vector K-1 calcula la condicion de corte para
+	el metodo seleccionado. Devuelve la resta de ambos y el resultado calculado."""
+	primerResultado = calcularRestaDeMatrices(vectorK, vectorKmenosUno)
+	segundoResultado = calcularNormaInfinitoParaVector(primerResultado)
+	tercerResultado = calcularNormaInfinitoParaVector(vectorK)
+	cuartoResultado = (segundoResultado / tercerResultado)
+	
+	return primerResultado, cuartoResultado
+	
+def pedirDatosParaElMetodos(matrizCoeficientes):
+	"""Pide los datos para su posterior utilizacion en el metodo 
+	seleccionado y los devuelve."""
+	n = calcularOrden(matrizCoeficientes)
+	vectorInicial = ingresarVectorInicial(n)
+	numeroDecimales = ingresarCantidadDeDecimales()
+	cotaDeError = ingresarCotaDeError()
+	return vectorInicial, numeroDecimales, cotaDeError
+	
+def calcularResultadosDelMetodo(matrizT, matrizC, vectorKmenosUno, cotaDeError):
+	"""Calcula los resultados y el criterio de corte del metodo elegido
+	para su posterior salida por pantalla. Devuelve una lista con los
+	resultados y otra con los criterios de corte."""
+	condicionDeCorte = UNO
+	listaConResultados = []
+	listaConCriteriosDeCorte = []
+	while(condicionDeCorte >= cotaDeError):
+		primerMatriz = multiplicarMatrices(matrizT, vectorKmenosUno)
+		vectorK = calcularSumaDeMatrices(primerMatriz, matrizC)
+		vectorResta, condicionDeCorte = calcularCondicionDeCorte(vectorK, vectorKmenosUno)
+		listaConResultados.append(vectorK)
+		listaConCriteriosDeCorte.append(vectorResta)
+		vectorKmenosUno = vectorK
+	return listaConResultados, listaConCriteriosDeCorte
+	
+def imprimirListaEnTabla(lista, numeroDecimales):
+	"""Imprime en forma de tabla la lista que se le pase y con la cantidad
+	de decimales establecida previamente."""
+	for i in range(len(lista)):
+		print i+UNO , 
+		resultado = lista[i]
+		for j in range(calcularOrden(resultado)):
+			print round(resultado[j, CERO], numeroDecimales) ,
+		print
+	print
+
+def imprimirVariables(listaConResultados, numeroDecimales):
+	"""Imprime por pantalla las variables resultado del metodo elegido"""
+	print
+	print " ----- Variables ----- "
+	imprimirListaEnTabla(listaConResultados, numeroDecimales)
+	
+def imprimirCriterioDeParo(listaConCriteriosDeCorte, numeroDecimales):
+	"""Imprime por pantalla el criterio de paro resultado del metodo elegido"""
+	print " ----- Criterio de Paro ----- "
+	imprimirListaEnTabla(listaConCriteriosDeCorte, numeroDecimales)
+
+def imprimirConjuntoDeValoresQueSatisfaceElSistema(listaConResultados):
+	"""Imprime el conjunto de valores que satisfacen el sistema
+	resultado del metodo elegido"""
+	print " ----- Conjunto de valores que satisfacen el sistema ----- "
+	resultado = listaConResultados[len(listaConResultados) - UNO]
+	for i in range(calcularOrden(resultado)):
+		print int(round(resultado[i, CERO], UNO)) ,
+	print
+
+def imprimirResultadosDelMetodo(listaConResultados, listaConCriteriosDeCorte, numeroDecimales):
+	"""Imprime por pantalla los resultados del metodo elegido."""
+	imprimirVariables(listaConResultados, numeroDecimales)
+	imprimirCriterioDeParo(listaConCriteriosDeCorte, numeroDecimales)
+	imprimirConjuntoDeValoresQueSatisfaceElSistema(listaConResultados)
+	
+def calcularMetodoJacobi(matrizCoeficientes, matrizIndependientes):
+	"""Calcula por el metodo de Jacobi la solucion del sistema dado."""
+	vectorInicial, numeroDecimales, cotaDeError = pedirDatosParaElMetodos(matrizCoeficientes)
+	matrizD, matrizL, matrizU = separarMatrizDeCoeficientes(matrizCoeficientes)
+	matrizT = calcularMatrizTdeJacobi(matrizD, matrizL, matrizU)
+	matrizC = calcularMatrizCdeJacobi(matrizD, matrizIndependientes)
+	listaConResultados, listaConCriteriosDeCorte = calcularResultadosDelMetodo(matrizT, matrizC, vectorInicial, cotaDeError)
+	imprimirResultadosDelMetodo(listaConResultados, listaConCriteriosDeCorte, numeroDecimales)
+	
+def calcularMetodoGaussSeidel(matrizCoeficientes, matrizIndependientes):
+	"""Calcula por el metodo de Gauss Seidel la solucion del sistema dado."""
+	vectorInicial, numeroDecimales, cotaDeError = pedirDatosParaElMetodos(matrizCoeficientes)
+	matrizD, matrizL, matrizU = separarMatrizDeCoeficientes(matrizCoeficientes)
+	matrizT = calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizU)
+	matrizC = calcularMatrizToCdeGaussSeidel(matrizD, matrizL, matrizIndependientes)
+	listaConResultados, listaConCriteriosDeCorte = calcularResultadosDelMetodo(matrizT, matrizC, vectorInicial, cotaDeError)
+	imprimirResultadosDelMetodo(listaConResultados, listaConCriteriosDeCorte, numeroDecimales)
+		
 def seleccionarOpcion(minimo, maximo):
 	"""Dado un minimo y un maximo, pide el ingreso de una opcion. """
 	print "-----"
@@ -400,11 +484,10 @@ def seleccionarOpcion(minimo, maximo):
 def accionarDecisionDelMenuMetodos(opcion, matrizCoeficientes, matrizIndependientes):
 	"""Dada una opcion seleccionada para el menu de metodos, la ejecuta."""
 	if (opcion == UNO):
-		funcionPrueba(matrizCoeficientes, matrizIndependientes)
-		return
-	if (opcion == DOS):
-		return
-	if (opcion == CERO):
+		calcularMetodoJacobi(matrizCoeficientes, matrizIndependientes)
+	elif (opcion == DOS):
+		calcularMetodoGaussSeidel(matrizCoeficientes, matrizIndependientes)
+	elif (opcion == CERO):
 		imprimirVolviendoAlMenuPrincipal()
 
 def ejecutarMenuMetodos(matrizCoeficientes, matrizIndependientes):
